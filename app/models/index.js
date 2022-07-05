@@ -14,14 +14,15 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
 const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
-db.tutorials = require("./tutorial.model.js")(sequelize, Sequelize);
-db.lessons = require("./lesson.model.js")(sequelize, Sequelize);
+db.users = require("./users.model.js")(sequelize, Sequelize);
 
+
+/*
 db.tutorials.hasMany(db.lessons, {
   as: 'lesson'
 });
 db.lessons.belongsTo(db.tutorials, {
   foreignKey: 'tutorialId', as: 'tutorial',
-});
+});*/
 
 module.exports = db;
