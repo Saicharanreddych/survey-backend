@@ -1,6 +1,7 @@
 const db = require("../models");
 const config = require("../config/auth.config");
 const User = db.user;
+const user_roles = db.sequelize.models.user_roles;
 exports.allAccess = (req, res) => {
   res.status(200).send("Public Content.");
 };
@@ -74,7 +75,27 @@ exports.findOne = (req, res) => {
       });
     });
 };
-
+exports.checkAdmin = (req, res) => {
+  
+  user_roles.findAll({
+    where : {roleId:3}
+  })
+    .then(data => {
+      
+      if (data.length) {
+        res.send(data);
+      } else {
+        res.status(404).send({
+          message: `No admin as of now`
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: "Error connecting to server"
+      });
+    });
+};
 exports.update = (req, res) => {
   const id = req.params.id;
     var data = {}

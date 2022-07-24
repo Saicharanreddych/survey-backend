@@ -12,6 +12,8 @@ module.exports = function(app) {
 
   app.get("/api/surveys/user/:id", controller.findOne);
 
+  app.get("/api/surveys/checkadmin", controller.checkAdmin);
+
   app.get(
     "/api/test/user",
     [authJwt.verifyToken],

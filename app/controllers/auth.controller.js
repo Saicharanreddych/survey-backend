@@ -9,6 +9,7 @@ var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
 
 exports.signup = (req, res) => {
+ 
   // Save User to Database
   User.create({
     username: req.body.username,
@@ -19,9 +20,7 @@ exports.signup = (req, res) => {
       if (req.body.roles) {
         Role.findAll({
           where: {
-            name: {
-              [Op.or]: req.body.roles
-            }
+            name: req.body.roles
           }
         }).then(roles => {
           user.setRoles(roles).then(() => {
