@@ -75,7 +75,10 @@ exports.insertQuestions = (req, res) => {
               err.message || "Some error occurred while inserting the questions."
           });
     }
+    
+
   };
+
   exports.findAll = (req, res) => {
     const surveyname = req.query.name;
     var condition = surveyname ? { surveyname: { [Op.like]: `%${surveyname}%` } } : null;
@@ -126,4 +129,43 @@ exports.insertQuestions = (req, res) => {
       });
   };
 
-  
+  // Delete a Survey with the specified id in the request
+exports.delete = (req, res) => {
+    const id = req.params.id;
+    Survey.destroy({
+      where: { id: id }
+    })
+      .then(num => {
+        if (num == 1) {
+          res.send({
+            message: "Survey was deleted successfully!"
+          });
+        } else {
+          res.send({
+            message: `Cannot delete Survey with id=${id}. Maybe Survey was not found!`
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: "Could not delete Survey with id=" + id
+        });
+      });
+  };
+
+  // Delete a Survey with the specified id in the request
+  exports.deleteQuestions = (req, res) => {
+    const id = req.params.id;
+    SurveyQuestions.destroy({
+      where: { surveyId: id }
+    })
+    .then(nums => {
+        res.send({ message: `${nums} Survey questions were deleted successfully!` });
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing all questions."
+        });
+      });
+  };
