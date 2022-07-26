@@ -1,3 +1,4 @@
+
 const { authJwt } = require("../middleware");
 const controller = require("../controllers/survey.controller");
 
@@ -11,7 +12,8 @@ module.exports = function(app) {
     next();
   });
 
- 
+  app.post("/api/surveys/createsurvey", controller.create);
+  app.post("/api/surveys/insert/:id",controller.insertQuestions);
   app.get("/api/surveys/getsurveys",controller.findAll);
 
   
