@@ -91,3 +91,39 @@ exports.insertQuestions = (req, res) => {
       });
   };
 
+  exports.findOne = (req, res) => {
+    const id = req.params.id;
+    Survey.findByPk(id)
+      .then(data => {
+        if (data) {
+          res.send(data);
+        } else {
+          res.status(404).send({
+            message: `Cannot find survey with id=${id}.`
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: "Error retrieving survey with id=" + id
+        });
+      });
+  };
+
+  
+  exports.findAllQuestions = (req, res) => {
+    const surveyid = req.params.id;
+    
+    SurveyQuestions.findAll({ where: {surveyId: surveyid} })
+      .then(data => {
+        res.send(data);
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving survey questions."
+        });
+      });
+  };
+
+  

@@ -15,6 +15,9 @@ module.exports = function(app) {
   app.post("/api/surveys/createsurvey", controller.create);
   app.post("/api/surveys/insert/:id",controller.insertQuestions);
   app.get("/api/surveys/getsurveys",controller.findAll);
+  app.get("/api/surveys/:id",controller.findOne);
+
+  app.get("/api/surveys/questions/:id",controller.findAllQuestions);
 
   
 };
