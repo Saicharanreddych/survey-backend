@@ -10,7 +10,9 @@ module.exports = function(app) {
     next();
   });
 
-  app.get("/api/users/all", controller.allAccess);
+  app.get("/api/surveys/user/:id", controller.findOne);
+
+  app.get("/api/surveys/checkadmin", controller.checkAdmin);
 
   app.get(
     "/api/test/user",
@@ -29,4 +31,18 @@ module.exports = function(app) {
     [authJwt.verifyToken, authJwt.isAdmin],
     controller.adminBoard
   );
+
+  app.delete(
+    "/api/surveys/user/:id",controller.delete
+  );
+  
+  app.put(
+    "/api/surveys/user/:id",controller.update
+  );
+
+  app.get(
+    "/api/surveys/users/all",controller.findAll
+  );
+  
+  
 };
