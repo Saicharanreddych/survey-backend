@@ -24,6 +24,7 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
+
 db.user = require("../models/user.model.js")(sequelize, Sequelize);
 db.role = require("../models/role.model.js")(sequelize, Sequelize);
 temp = require("../models/survey.model.js")(sequelize, Sequelize);
@@ -40,6 +41,10 @@ db.user.belongsToMany(db.role, {
   foreignKey: "userId",
   otherKey: "roleId"
 });
+
+
+
+
 
 db.ROLES = ["user", "admin", "moderator"];
 
