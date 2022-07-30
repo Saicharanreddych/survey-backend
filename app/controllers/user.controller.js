@@ -3,13 +3,11 @@ const db = require("../models");
 const config = require("../config/auth.config");
 const User = db.user;
 const user_roles = db.sequelize.models.user_roles;
-
-
-
+const Op = db.Sequelize.Op;
 
 exports.findAll = (req, res) => {
-  const name = req.query.name;
-  var condition = name ? { name: { [Op.like]: `%${title}%` } } : null;
+  const username = req.query.name;
+  var condition = username ? { username: { [Op.like]: `%${username}%` } } : null;
   User.findAll({ where: condition })
     .then(data => {
       res.send(data);
