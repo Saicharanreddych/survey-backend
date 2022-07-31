@@ -3,6 +3,8 @@ const config = require("../config/auth.config");
 const Op = db.Sequelize.Op;
 const Survey = db.survey;
 const SurveyQuestions = db.surveyquestions;
+const AssignedSurveys = db.sequelize.models.assignedsurveys;
+const SurveyAnswers = db.surveyanswers;
 // Create and Save a new Survey
 exports.create = (req, res) => {
     // Validate request
@@ -79,6 +81,29 @@ exports.insertQuestions = (req, res) => {
 
   };
 
+  // Assign a new Survey
+exports.assignSurvey = (req, res) => {
+
+  console.log(req.body);
+  const surveyinfo = {
+    userId: req.body.userid,
+    surveyId: req.body.surveyid
+  };
+  
+  // Save Surveyinfo in the database
+  AssignedSurveys.create(surveyinfo)
+    .then(data => {
+      res.send(data);
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while assigning the survey."
+      });
+    });
+
+};
+
   exports.findAll = (req, res) => {
     const surveyname = req.query.name;
     var condition = surveyname ? { surveyname: { [Op.like]: `%${surveyname}%` } } : null;
@@ -109,6 +134,67 @@ exports.insertQuestions = (req, res) => {
       .catch(err => {
         res.status(500).send({
           message: "Error retrieving survey with id=" + id
+        });
+      });
+  };
+
+  exports.findAnswers = (req, res) => {
+    const questionid = req.params.questionid;
+    SurveyAnswers.findAll({
+      where : { surveyquestionId : questionid}
+    })
+      .then(data => {
+        if (data) {
+          res.send(data);
+        } else {
+          res.status(404).send({
+            message: `There are no answers assigned for the question`
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: "Internal server error"
+        });
+      });
+  };
+
+  exports.findOne = (req, res) => {
+    const id = req.params.id;
+    Survey.findByPk(id)
+      .then(data => {
+        if (data) {
+          res.send(data);
+        } else {
+          res.status(404).send({
+            message: `Cannot find survey with id=${id}.`
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: "Error retrieving survey with id=" + id
+        });
+      });
+  };
+
+  exports.findAssigned = (req, res) => {
+    const userid = req.params.userid;
+    AssignedSurveys.findAll({
+      where : { userId : userid}
+    })
+      .then(data => {
+        if (data) {
+          res.send(data);
+        } else {
+          res.status(404).send({
+            message: `There are no surveys assigned for the user`
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: "Internal server error"
         });
       });
   };

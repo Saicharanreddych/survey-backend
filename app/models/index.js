@@ -30,6 +30,7 @@ db.role = require("../models/role.model.js")(sequelize, Sequelize);
 temp = require("../models/survey.model.js")(sequelize, Sequelize);
 db.survey = temp.Survey;
 db.surveyquestions = temp.SurveyQuestions;
+db.surveyanswers = temp.SurveyAnswers;
 
 db.role.belongsToMany(db.user, {
   through: "user_roles",
@@ -42,11 +43,16 @@ db.user.belongsToMany(db.role, {
   otherKey: "roleId"
 });
 
+db.survey.belongsToMany(db.user,{
+  through: "assignedsurveys",
+  foreignKey: "surveyId",
+  otherKey: "userId"})
 
-
-
-
+db.user.belongsToMany(db.survey, {
+    through: "assignedsurveys",
+    foreignKey: "userId",
+    otherKey: "surveyId"
+  });
 db.ROLES = ["user", "admin", "moderator"];
 
 module.exports = db;
-

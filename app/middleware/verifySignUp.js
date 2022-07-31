@@ -1,6 +1,7 @@
 const db = require("../models");
 const ROLES = db.ROLES;
 const User = db.user;
+const Survey = db.survey;
 
 checkDuplicateUsernameOrEmail = (req, res, next) => {
   // Username
@@ -34,6 +35,24 @@ checkDuplicateUsernameOrEmail = (req, res, next) => {
   });
 };
 
+checkDuplicateSurveyname = (req, res, next) => {
+  // Surveyname
+  Survey.findOne({
+    where: {
+      surveyname: req.body.surveyname
+    }
+  }).then(user => {
+    if (user) {
+      res.status(400).send({
+        message: "Failed! Surveyname is already in use!"
+      });
+      return;
+    }
+    next();
+  });
+  
+}
+
 checkRolesExisted = (req, res, next) => {
   if (req.body.roles) {
     
@@ -51,7 +70,8 @@ checkRolesExisted = (req, res, next) => {
 
 const verifySignUp = {
   checkDuplicateUsernameOrEmail: checkDuplicateUsernameOrEmail,
-  checkRolesExisted: checkRolesExisted
-};
+  checkRolesExisted: checkRolesExisted,
+  checkDuplicateSurveyname: checkDuplicateSurveyname
+}
 
 module.exports = verifySignUp;
