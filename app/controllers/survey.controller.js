@@ -4,6 +4,7 @@ const Op = db.Sequelize.Op;
 const Survey = db.survey;
 const SurveyQuestions = db.surveyquestions;
 const AssignedSurveys = db.sequelize.models.assignedsurveys;
+const UserResponses = db.sequelize.models.userresponses;
 const SurveyAnswers = db.surveyanswers;
 // Create and Save a new Survey
 exports.create = (req, res) => {
@@ -40,6 +41,7 @@ exports.insertQuestions = (req, res) => {
     const id = req.params.id;
     
     var questions = JSON.parse(req.body.questions);
+    var types = JSON.parse(req.body.types);
    // var questions = req.body.questions; postman
     
     var finaldata = [];
@@ -49,6 +51,7 @@ exports.insertQuestions = (req, res) => {
     // Create a Survey
     var surveyquestion = {
       question: questions[i],
+      type:types[i],
       surveyId: id
     };
     
@@ -77,9 +80,100 @@ exports.insertQuestions = (req, res) => {
               err.message || "Some error occurred while inserting the questions."
           });
     }
-    
-
   };
+
+  // Insert questions into survey.
+exports.insertResponses = (req, res) => {
+    
+  var answerresponse = req.body.answerresponse;
+  var userid = req.body.userid;
+ // var questions = req.body.questions; postman
+  
+  var finaldata = [];
+  var count = 0;
+  for(var i=0;i<answerresponse.length;i++)
+  {
+  // Create a Survey
+  var userresponse = {
+    answerId: answerresponse[i].id,
+    userId: userid
+  };
+  
+  
+  // Save Survey in the database
+  UserResponses.create(userresponse)
+    .then(data => {
+      count += 1;
+      res.statusCode = 200;
+      finaldata.push(data.dataValues);
+      
+      if(count == answerresponse.length)
+      {
+          res.end(JSON.stringify(finaldata));
+      }
+    })
+    .catch(err => {
+      res.statusCode = 500;
+    });
+  }
+  
+  if(res.statusCode == 500)
+  {
+      res.send({
+          message:
+            err.message || "Some error occurred while inserting the responses."
+        });
+  }
+  
+
+};
+
+  // Insert questions into survey.
+exports.insertAnswers = (req, res) => {
+    
+  var answers = JSON.parse(req.body.answers);
+  var questionids = JSON.parse(req.body.questionids);
+ // var questions = req.body.questions; postman
+  
+  var finaldata = [];
+  var count = 0;
+  for(var i=0;i<answers.length;i++)
+  {
+  // Create a Survey
+  var surveyanswer = {
+    answer: answers[i],
+    surveyquestionId: questionids[i]
+  };
+  
+  
+  // Save Survey in the database
+  SurveyAnswers.create(surveyanswer)
+    .then(data => {
+      count += 1;
+      res.statusCode = 200;
+      finaldata.push(data.dataValues);
+      
+      if(count == answers.length)
+      {
+          res.end(JSON.stringify(finaldata));
+      }
+    })
+    .catch(err => {
+      res.statusCode = 500;
+    });
+  }
+  
+  if(res.statusCode == 500)
+  {
+      res.send({
+          message:
+            err.message || "Some error occurred while inserting the answers."
+        });
+  }
+  
+
+};
+
 
   // Assign a new Survey
 exports.assignSurvey = (req, res) => {
@@ -140,17 +234,24 @@ exports.assignSurvey = (req, res) => {
 
   exports.findAnswers = (req, res) => {
     const questionid = req.params.questionid;
+    const userid = req.params.userid;
     SurveyAnswers.findAll({
       where : { surveyquestionId : questionid}
     })
       .then(data => {
-        if (data) {
-          res.send(data);
-        } else {
-          res.status(404).send({
-            message: `There are no answers assigned for the question`
-          });
-        }
+        UserResponses.findAll({
+          where:{userId:userid}
+        })
+        .then(data => {
+          if(data){
+            res.send(data);
+          } else {
+            res.status(404).send({
+              message: `There are no answers assigned for the question by the user`
+            });
+          }
+        })
+       
       })
       .catch(err => {
         res.status(500).send({

@@ -53,6 +53,18 @@ db.user.belongsToMany(db.survey, {
     foreignKey: "userId",
     otherKey: "surveyId"
   });
+
+db.surveyanswers.belongsToMany(db.user,{
+  through:"userresponses",
+  foreignKey: "answerId",
+  otherKey: "userId"
+})
+
+db.user.belongsToMany(db.surveyanswers,{
+  through:"userresponses",
+  foreignKey: "userId",
+  otherKey: "answerId"
+})
 db.ROLES = ["user", "admin", "moderator"];
 
 module.exports = db;
