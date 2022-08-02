@@ -20,9 +20,15 @@ module.exports = function(app) {
   app.get("/api/surveys/:id",controller.findOne);
   app.get("/api/surveys/assign/:userid",controller.findAssigned);
   app.get("/api/surveys/answer/:questionid/:userid",controller.findAnswers);
+  app.get("/api/surveys/singleanswer/:questionid",controller.findAnswer);
+  app.get("/api/surveys/getuserresponse/:id",controller.findUserResponse);
   app.put("/api/surveys/:id",controller.update);
   app.get("/api/surveys/questions/:id",controller.findAllQuestions);
   app.delete("/api/surveys/:id",controller.delete);
   app.delete("/api/surveys/questions/:id",controller.deleteQuestions);
+  app.delete("/api/surveys/assignedsurveys/:id",controller.deleteAssignedSurveys);
+  app.delete("/api/surveys/deleteanswers/:id",controller.deleteAnswers);
+  app.delete("/api/surveys/deleteanswer/:answerid",controller.deleteAnswer);
+  app.delete("/api/surveys/deleteuserresponse/:id",controller.deleteUserResponse);
   
 };

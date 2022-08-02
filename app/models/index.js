@@ -65,6 +65,8 @@ db.user.belongsToMany(db.surveyanswers,{
   foreignKey: "userId",
   otherKey: "answerId"
 })
+db.userresponses = db.sequelize.models.userresponses;
+db.user.hasMany(db.userresponses)
 db.ROLES = ["user", "admin", "moderator"];
 
 module.exports = db;

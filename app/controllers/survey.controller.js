@@ -232,32 +232,65 @@ exports.assignSurvey = (req, res) => {
       });
   };
 
-  exports.findAnswers = (req, res) => {
+  exports.findAnswers = async (req, res) => {
     const questionid = req.params.questionid;
+    
     const userid = req.params.userid;
-    SurveyAnswers.findAll({
-      where : { surveyquestionId : questionid}
-    })
-      .then(data => {
-        UserResponses.findAll({
-          where:{userId:userid}
-        })
-        .then(data => {
-          if(data){
-            res.send(data);
-          } else {
-            res.status(404).send({
-              message: `There are no answers assigned for the question by the user`
-            });
-          }
-        })
-       
-      })
-      .catch(err => {
-        res.status(500).send({
-          message: "Internal server error"
+    const response= await SurveyAnswers.findAll({where:{surveyquestionId:questionid}});
+    var answerids = []
+    var answer = []
+    
+    for(var i = 0 ;i<response.length;i++)
+    {
+        answerids.push(response[i].dataValues.id);
+        answer.push(response[i].dataValues)
+    }
+   
+    const answers = await UserResponses.findAll({where:{userId:userid}});
+    
+    if(answers.length)
+    {
+
+      for(var i = 0;i<answers.length;i++)
+      {
+        
+        if(answerids.indexOf(answers[i].dataValues.answerId)>=0)
+        {
+          
+          res.end(JSON.stringify(answer));
+          return;
+        }
+      }
+    }
+  else
+  {
+    res.send({
+      message: `User did not submitted the survey`
+    });
+  }
+        
+
+  };
+
+  exports.findAnswer = async (req, res) => {
+    const questionid = req.params.questionid;
+    SurveyAnswers.findAll({where:{surveyquestionId:questionid}})
+    .then(data=>{
+      if(data)
+      {
+        res.send(data);
+      }else {
+        res.status(404).send({
+          message: `Cannot find answers with id=${questionid}.`
         });
+      }
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: "Error retrieving answer with id=" + questionid
       });
+    });
+    
   };
 
   exports.findOne = (req, res) => {
@@ -290,6 +323,27 @@ exports.assignSurvey = (req, res) => {
         } else {
           res.status(404).send({
             message: `There are no surveys assigned for the user`
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: "Internal server error"
+        });
+      });
+  };
+
+  exports.findUserResponse = (req, res) => {
+    const userid = req.params.id;
+    UserResponses.findAll({
+      where : { userId : userid}
+    })
+      .then(data => {
+        if (data) {
+          res.send(data);
+        } else {
+          res.status(404).send({
+            message: `There are no responses assigned for the user`
           });
         }
       })
@@ -375,6 +429,70 @@ exports.delete = (req, res) => {
         res.status(500).send({
           message:
             err.message || "Some error occurred while removing all questions."
+        });
+      });
+  };
+
+  exports.deleteAssignedSurveys = (req, res) => {
+    const id = req.params.id;
+    AssignedSurveys.destroy({
+      where: { surveyId: id }
+    })
+    .then(nums => {
+        res.send({ message: `${nums} Assigned surveys were deleted successfully!` });
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing assigned surveys."
+        });
+      });
+  };
+
+  exports.deleteAnswers = (req, res) => {
+    const id = req.params.id;
+    SurveyAnswers.destroy({
+      where: { surveyquestionId: id }
+    })
+    .then(nums => {
+        res.send({ message: `${nums} Answers were deleted successfully!` });
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing assigned surveys."
+        });
+      });
+  };
+
+  exports.deleteAnswer = (req, res) => {
+    const id = req.params.answerid;
+    SurveyAnswers.destroy({
+      where: { id: id }
+    })
+    .then(nums => {
+        res.send({ message: `Answer deleted successfully!` });
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing answer."
+        });
+      });
+  };
+
+  exports.deleteUserResponse = (req, res) => {
+    const id = req.params.id;
+    UserResponses.destroy({
+      where: { answerId: id }
+    })
+    .then(nums => {
+        res.send({ message: `${nums} Answers were deleted successfully!` });
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing answers."
         });
       });
   };
