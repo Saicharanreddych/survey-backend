@@ -5,6 +5,8 @@ module.exports = (sequelize, Sequelize) => {
     }
   });
   const SurveyQuestions = require("../models/surveyquestions.model.js")(sequelize, Sequelize);
+  const SurveyAnswers = require("../models/surveyanswers.model.js")(sequelize, Sequelize);
   SurveyQuestions.belongsTo(Survey);
-  return {Survey,SurveyQuestions};
+  SurveyAnswers.belongsTo(SurveyQuestions)
+  return {Survey,SurveyQuestions,SurveyAnswers};
 };

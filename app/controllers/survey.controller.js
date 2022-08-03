@@ -3,6 +3,9 @@ const config = require("../config/auth.config");
 const Op = db.Sequelize.Op;
 const Survey = db.survey;
 const SurveyQuestions = db.surveyquestions;
+const AssignedSurveys = db.sequelize.models.assignedsurveys;
+const UserResponses = db.sequelize.models.userresponses;
+const SurveyAnswers = db.surveyanswers;
 // Create and Save a new Survey
 exports.create = (req, res) => {
     // Validate request
@@ -38,6 +41,7 @@ exports.insertQuestions = (req, res) => {
     const id = req.params.id;
     
     var questions = JSON.parse(req.body.questions);
+    var types = JSON.parse(req.body.types);
    // var questions = req.body.questions; postman
     
     var finaldata = [];
@@ -47,6 +51,7 @@ exports.insertQuestions = (req, res) => {
     // Create a Survey
     var surveyquestion = {
       question: questions[i],
+      type:types[i],
       surveyId: id
     };
     
@@ -75,9 +80,123 @@ exports.insertQuestions = (req, res) => {
               err.message || "Some error occurred while inserting the questions."
           });
     }
-    
-
   };
+
+  // Insert questions into survey.
+exports.insertResponses = (req, res) => {
+    
+  var answerresponse = req.body.answerresponse;
+  var userid = req.body.userid;
+ // var questions = req.body.questions; postman
+  
+  var finaldata = [];
+  var count = 0;
+  for(var i=0;i<answerresponse.length;i++)
+  {
+  // Create a Survey
+  var userresponse = {
+    answerId: answerresponse[i].id,
+    userId: userid
+  };
+  
+  
+  // Save Survey in the database
+  UserResponses.create(userresponse)
+    .then(data => {
+      count += 1;
+      res.statusCode = 200;
+      finaldata.push(data.dataValues);
+      
+      if(count == answerresponse.length)
+      {
+          res.end(JSON.stringify(finaldata));
+      }
+    })
+    .catch(err => {
+      res.statusCode = 500;
+    });
+  }
+  
+  if(res.statusCode == 500)
+  {
+      res.send({
+          message:
+            err.message || "Some error occurred while inserting the responses."
+        });
+  }
+  
+
+};
+
+  // Insert questions into survey.
+exports.insertAnswers = (req, res) => {
+    
+  var answers = JSON.parse(req.body.answers);
+  var questionids = JSON.parse(req.body.questionids);
+ // var questions = req.body.questions; postman
+  
+  var finaldata = [];
+  var count = 0;
+  for(var i=0;i<answers.length;i++)
+  {
+  // Create a Survey
+  var surveyanswer = {
+    answer: answers[i],
+    surveyquestionId: questionids[i]
+  };
+  
+  
+  // Save Survey in the database
+  SurveyAnswers.create(surveyanswer)
+    .then(data => {
+      count += 1;
+      res.statusCode = 200;
+      finaldata.push(data.dataValues);
+      
+      if(count == answers.length)
+      {
+          res.end(JSON.stringify(finaldata));
+      }
+    })
+    .catch(err => {
+      res.statusCode = 500;
+    });
+  }
+  
+  if(res.statusCode == 500)
+  {
+      res.send({
+          message:
+            err.message || "Some error occurred while inserting the answers."
+        });
+  }
+  
+
+};
+
+
+  // Assign a new Survey
+exports.assignSurvey = (req, res) => {
+
+  console.log(req.body);
+  const surveyinfo = {
+    userId: req.body.userid,
+    surveyId: req.body.surveyid
+  };
+  
+  // Save Surveyinfo in the database
+  AssignedSurveys.create(surveyinfo)
+    .then(data => {
+      res.send(data);
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while assigning the survey."
+      });
+    });
+
+};
 
   exports.findAll = (req, res) => {
     const surveyname = req.query.name;
@@ -109,6 +228,128 @@ exports.insertQuestions = (req, res) => {
       .catch(err => {
         res.status(500).send({
           message: "Error retrieving survey with id=" + id
+        });
+      });
+  };
+
+  exports.findAnswers = async (req, res) => {
+    const questionid = req.params.questionid;
+    
+    const userid = req.params.userid;
+    const response= await SurveyAnswers.findAll({where:{surveyquestionId:questionid}});
+    var answerids = []
+    var answer = []
+    
+    for(var i = 0 ;i<response.length;i++)
+    {
+        answerids.push(response[i].dataValues.id);
+        answer.push(response[i].dataValues)
+    }
+   
+    const answers = await UserResponses.findAll({where:{userId:userid}});
+    
+    if(answers.length)
+    {
+
+      for(var i = 0;i<answers.length;i++)
+      {
+        
+        if(answerids.indexOf(answers[i].dataValues.answerId)>=0)
+        {
+          
+          res.end(JSON.stringify(answer));
+          return;
+        }
+      }
+    }
+  else
+  {
+    res.send({
+      message: `User did not submitted the survey`
+    });
+  }
+        
+
+  };
+
+  exports.findAnswer = async (req, res) => {
+    const questionid = req.params.questionid;
+    SurveyAnswers.findAll({where:{surveyquestionId:questionid}})
+    .then(data=>{
+      if(data)
+      {
+        res.send(data);
+      }else {
+        res.status(404).send({
+          message: `Cannot find answers with id=${questionid}.`
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: "Error retrieving answer with id=" + questionid
+      });
+    });
+    
+  };
+
+  exports.findOne = (req, res) => {
+    const id = req.params.id;
+    Survey.findByPk(id)
+      .then(data => {
+        if (data) {
+          res.send(data);
+        } else {
+          res.status(404).send({
+            message: `Cannot find survey with id=${id}.`
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: "Error retrieving survey with id=" + id
+        });
+      });
+  };
+
+  exports.findAssigned = (req, res) => {
+    const userid = req.params.userid;
+    AssignedSurveys.findAll({
+      where : { userId : userid}
+    })
+      .then(data => {
+        if (data) {
+          res.send(data);
+        } else {
+          res.status(404).send({
+            message: `There are no surveys assigned for the user`
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: "Internal server error"
+        });
+      });
+  };
+
+  exports.findUserResponse = (req, res) => {
+    const userid = req.params.id;
+    UserResponses.findAll({
+      where : { userId : userid}
+    })
+      .then(data => {
+        if (data) {
+          res.send(data);
+        } else {
+          res.status(404).send({
+            message: `There are no responses assigned for the user`
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: "Internal server error"
         });
       });
   };
@@ -188,6 +429,70 @@ exports.delete = (req, res) => {
         res.status(500).send({
           message:
             err.message || "Some error occurred while removing all questions."
+        });
+      });
+  };
+
+  exports.deleteAssignedSurveys = (req, res) => {
+    const id = req.params.id;
+    AssignedSurveys.destroy({
+      where: { surveyId: id }
+    })
+    .then(nums => {
+        res.send({ message: `${nums} Assigned surveys were deleted successfully!` });
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing assigned surveys."
+        });
+      });
+  };
+
+  exports.deleteAnswers = (req, res) => {
+    const id = req.params.id;
+    SurveyAnswers.destroy({
+      where: { surveyquestionId: id }
+    })
+    .then(nums => {
+        res.send({ message: `${nums} Answers were deleted successfully!` });
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing assigned surveys."
+        });
+      });
+  };
+
+  exports.deleteAnswer = (req, res) => {
+    const id = req.params.answerid;
+    SurveyAnswers.destroy({
+      where: { id: id }
+    })
+    .then(nums => {
+        res.send({ message: `Answer deleted successfully!` });
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing answer."
+        });
+      });
+  };
+
+  exports.deleteUserResponse = (req, res) => {
+    const id = req.params.id;
+    UserResponses.destroy({
+      where: { answerId: id }
+    })
+    .then(nums => {
+        res.send({ message: `${nums} Answers were deleted successfully!` });
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing answers."
         });
       });
   };
